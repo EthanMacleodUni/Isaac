@@ -1,0 +1,11 @@
+<ItemPools>
+    <Pool Name="treasure">
+        <Item Id="1" Name="Abhorrent Interest" Weight="1" DecreaseBy="1" RemoveOn="0.1"/>
+    </Pool>
+    <Pool Name="shop">
+        <Item Id="1" Name="Abhorrent Interest" Weight="1" DecreaseBy="1" RemoveOn="0.1"/>
+    </Pool>
+    <Pool Name="boss">
+        <Item Id="1" Name="Abhorrent Interest" Weight="1" DecreaseBy="1" RemoveOn="0.1"/>
+    </Pool>
+</ItemPools>

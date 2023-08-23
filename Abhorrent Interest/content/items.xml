@@ -1,0 +1,5 @@
+<items gfxroot="gfx/items/" version="1">
+
+    <passive id="1" name="Abhorrent Interest" gfx="abhorrent_interest.png" desciption="Compounding!" quality="2" cache="damage" />
+
+</items>
