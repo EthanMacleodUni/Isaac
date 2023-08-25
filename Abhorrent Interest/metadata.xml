@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-	<name>MyMod</name>
-	<directory>mymod</directory>
-	<description/>
-	<version>1.0</version>
-	<visibility/>
+    <name>Abhorrent Interest</name>
+    <directory>abhorrent interest</directory>
+    <id>3025367792</id>
+    <description></description>
+    <version>1.2</version>
+    <visibility>Public</visibility>
+    <tag id="Lua"/>
+    <tag id="Items"/>
 </metadata>
-

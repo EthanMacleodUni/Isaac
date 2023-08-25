@@ -4,7 +4,7 @@ local mod = RegisterMod("Abhorrent Interest", 1)
 ------------ CONSTANTS ------------
 local ABHORRENT_INTEREST_ID = Isaac.GetItemIdByName("Abhorrent Interest") -- Item ID
 local INITIAL_DAMAGE = 0.2                                                -- Starting point of damage up
-local MAX_DAMAGE = 3000;                                                  -- Most damage before U_I stops spawning
+local MAX_DAMAGE = 1000;                                                  -- Most damage before U_I stops spawning
 -----------------------------------
 
 -- Initialise spawn chance
@@ -14,12 +14,13 @@ local spawnChanceIncrease = 0.05
 -- Number of current AI's
 local pickedUpAI = 0
 
+--Is it a new floor
 local newFloor = false
 
 
 -- Add to External Item Descriptions
 EID:addCollectible(ABHORRENT_INTEREST_ID,
-    "↑ {{Damage}} Damage up#Damage increases for every Abhorrent Interest owned#Will appear more often once picked up",
+    "↑ {{Damage}} Damage up#Damage increases for every Abhorrent Interest owned#Will appear more often once picked up# If an Abhorrent Interest isnt picked up on a level, interest will be charged equal to how many you own",
     "Abhorrent Interest")
 
 ------------ Adds damage to Player ------------
@@ -41,13 +42,22 @@ function mod:UISpawning()
     local entities = Isaac.GetRoomEntities()
     local player = Isaac.GetPlayer(0)
 
+    if newFloor == true then
+        mod:HandleInterest()
+        newFloor = false
+    end
+
     for _, entity in ipairs(entities) do
         if mod:CanSpawn(entity, player) then
             local pos = entity.Position
             entity:Remove()
-            Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, ABHORRENT_INTEREST_ID, pos,
-                Vector(0, 0),
-                nil)
+
+            if Game():GetRoom():GetType() == RoomType.ROOM_SHOP then
+                mod:SpawnShop(pos)
+            else
+                mod:SpawnNormal(pos)
+            end
+
             spawnChance = spawnChance + spawnChanceIncrease
         end
     end
@@ -63,7 +73,7 @@ function mod:CanSpawn(entity, player)
     local room = Game():GetRoom()
     local rng = player:GetCollectibleRNG(ABHORRENT_INTEREST_ID)
 
-    if room:IsFirstVisit() and mod:HasAI(player) then
+    if room:IsFirstVisit() and mod:HasAI(player) and mod:CheckValidRoom(room) then
         if entity.Variant == PickupVariant.PICKUP_COLLECTIBLE and (rng:RandomFloat() < spawnChance) and (player.Damage < MAX_DAMAGE) then
             return true
         end
@@ -93,7 +103,6 @@ function mod:HandleInterest()
         local numAI = player:GetCollectibleNum(ABHORRENT_INTEREST_ID)
 
         if (numAI - pickedUpAI) == 0 then
-            Game():AddPixelation(0)
             Game():GetHUD():ShowFortuneText("Pay the interest", "Or pay the price")
             player:AnimateSad()
             local currentCoins = player:GetNumCoins()
@@ -109,10 +118,35 @@ function mod:HandleInterest()
     end
 end
 
+function mod:SpawnNormal(pos)
+    Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, ABHORRENT_INTEREST_ID, pos,
+        Vector(0, 0),
+        nil):ToPickup()
+end
+
+function mod:SpawnShop(pos)
+    local newItem = Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, ABHORRENT_INTEREST_ID, pos,
+        Vector(0, 0),
+        nil):ToPickup()
+    newItem.AutoUpdatePrice = false
+    newItem.Price = 15
+end
+
+function mod:CheckValidRoom(room)
+    if room:GetType() == RoomType.ROOM_ANGEL or room:GetType() == RoomType.ROOM_DEVIL then
+        return false
+    end
+    return true
+end
+
+function mod:TriggerHandling()
+    newFloor = true
+end
+
 ------------------------------------------------------
 
 ------------ Add callbacks ------------
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EvaluateCache)
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.UISpawning)
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.HandleInterest)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.TriggerHandling)
 ---------------------------------------
